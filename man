@@ -14,17 +14,24 @@
       font-family: Arial, sans-serif;
       background: linear-gradient(135deg, #6a11cb, #2575fc);
       margin: 0;
-      padding: 20px;
-      min-height: 100vh;
+      padding: 16px;
+      min-height: 100dvh;
       display: flex;
       justify-content: center;
       align-items: center;
       color: #333;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    button {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      font-family: inherit;
     }
 
     .quiz-container {
       background: #fff;
-      padding: 30px;
+      padding: 24px;
       border-radius: 15px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
       max-width: 700px;
@@ -33,27 +40,30 @@
     }
 
     .welcome-title {
-      font-size: 2em;
+      font-size: clamp(1.6rem, 6vw, 2rem);
       color: #6a11cb;
+      margin-top: 0;
       margin-bottom: 15px;
     }
 
     .timer-display {
-      font-size: 1.2em;
+      font-size: clamp(1rem, 4vw, 1.2rem);
       font-weight: bold;
       color: #ff4757;
       background: #ffeae6;
       padding: 10px;
       border-radius: 8px;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       display: block;
     }
 
     .question {
-      font-size: 1.25em;
-      margin-bottom: 20px;
+      font-size: clamp(1.05rem, 4.2vw, 1.25rem);
+      margin-bottom: 18px;
       font-weight: bold;
       color: #444;
+      line-height: 1.4;
+      text-align: left;
     }
 
     .options {
@@ -63,21 +73,26 @@
     }
 
     .option {
-      padding: 13px;
+      padding: 14px;
+      min-height: 48px;
       border: 2px solid #ddd;
       border-radius: 10px;
       cursor: pointer;
       background: #f9f9f9;
-      font-size: 1.05em;
+      font-size: clamp(0.95rem, 3.8vw, 1.05rem);
+      line-height: 1.35;
       text-align: left;
       width: 100%;
       color: #333;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
     }
 
-    .option:not(:disabled):hover {
-      background: #6a11cb;
-      color: #fff;
-      border-color: #6a11cb;
+    @media (hover: hover) {
+      .option:not(:disabled):hover {
+        background: #6a11cb;
+        color: #fff;
+        border-color: #6a11cb;
+      }
     }
 
     .option:disabled {
@@ -87,17 +102,25 @@
 
     .quiz-button {
       width: 100%;
+      min-height: 48px;
       padding: 15px;
       margin-top: 20px;
       background: #2575fc;
       color: #fff;
       border: none;
       border-radius: 10px;
-      font-size: 1.1em;
+      font-size: clamp(1rem, 4vw, 1.1rem);
+      font-weight: bold;
       cursor: pointer;
     }
 
-    .quiz-button:hover {
+    @media (hover: hover) {
+      .quiz-button:hover {
+        background: #6a11cb;
+      }
+    }
+
+    .quiz-button:active {
       background: #6a11cb;
     }
 
@@ -106,17 +129,18 @@
     }
 
     .score {
-      font-size: 1.8em;
+      font-size: clamp(1.4rem, 5.5vw, 1.8rem);
       margin-top: 20px;
-      color: #2ed573;
+      color: #168a4a;
       font-weight: bold;
     }
 
     .result {
       text-align: left;
       margin-top: 20px;
-      max-height: 350px;
+      max-height: 55dvh;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .result-item {
@@ -124,14 +148,37 @@
       padding: 12px;
       border-radius: 10px;
       background: #f1f2f6;
+      font-size: 0.95rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
     }
 
     .correct {
       color: #168a4a;
+      font-weight: bold;
     }
 
     .incorrect {
-      color: #ff4757;
+      color: #e03131;
+      font-weight: bold;
+    }
+
+    @media (min-width: 600px) {
+      body {
+        padding: 20px;
+      }
+
+      .quiz-container {
+        padding: 30px;
+      }
+
+      .question {
+        text-align: center;
+      }
+
+      .result {
+        max-height: 350px;
+      }
     }
   </style>
 </head>
@@ -144,14 +191,14 @@
     <div id="welcome-container">
       <h1 class="welcome-title">Folk Dance Quiz</h1>
 
-      <p>Test your knowledge about Folk Dance in the Philippines..</p>
+      <p>Test your knowledge about Folk Dance in the Philippines.</p>
 
       <p>
         There are <strong>15 questions</strong>.
         You have <strong>20 minutes</strong> to complete the quiz.
       </p>
 
-      <button class="quiz-button" onclick="startQuiz()">
+      <button type="button" id="start-button" class="quiz-button">
         Start Quiz
       </button>
     </div>
@@ -167,7 +214,7 @@
 
       <div id="options" class="options"></div>
 
-      <button id="next-button" class="quiz-button next-button">
+      <button type="button" id="next-button" class="quiz-button next-button">
         Next
       </button>
 
@@ -182,7 +229,7 @@
 
       <div id="result" class="result"></div>
 
-      <button class="quiz-button" onclick="restartQuiz()">
+      <button type="button" id="restart-button" class="quiz-button">
         Restart Quiz
       </button>
 
@@ -192,7 +239,6 @@
 
   <script>
     const questions = [
-
       {
         question: "1. Where did Tinikling originate?",
         options: [
@@ -203,7 +249,6 @@
         ],
         answer: "Palo, Leyte"
       },
-
       {
         question: "2. What animal inspired the name and movements of Tinikling?",
         options: [
@@ -214,7 +259,6 @@
         ],
         answer: "Tikling bird"
       },
-
       {
         question: "3. What do Tinikling dancers move between?",
         options: [
@@ -225,7 +269,6 @@
         ],
         answer: "Bamboo poles"
       },
-
       {
         question: "4. Which statement about Tinikling's origin is correct?",
         options: [
@@ -236,7 +279,6 @@
         ],
         answer: "It is believed to have existed before the Spanish period."
       },
-
       {
         question: "5. Which costume is commonly worn by female Tinikling dancers?",
         options: [
@@ -247,7 +289,6 @@
         ],
         answer: "Balintawak or patadyong"
       },
-
       {
         question: "6. Where did Cariñosa originate?",
         options: [
@@ -258,7 +299,6 @@
         ],
         answer: "Panay Island"
       },
-
       {
         question: "7. Which dances are associated with the Spanish and Mexican influences of Cariñosa?",
         options: [
@@ -269,7 +309,6 @@
         ],
         answer: "Bolero and Jarabe Tapatio"
       },
-
       {
         question: "8. What is the main theme expressed through Cariñosa's movements?",
         options: [
@@ -280,7 +319,6 @@
         ],
         answer: "Courtship between a man and a woman"
       },
-
       {
         question: "9. Which props are commonly used in Cariñosa?",
         options: [
@@ -291,7 +329,6 @@
         ],
         answer: "Fan and handkerchief"
       },
-
       {
         question: "10. What is the time signature of Cariñosa?",
         options: [
@@ -302,7 +339,6 @@
         ],
         answer: "3/4"
       },
-
       {
         question: "11. What is the usual time signature of Sakuting?",
         options: [
@@ -313,7 +349,6 @@
         ],
         answer: "2/4"
       },
-
       {
         question: "12. Which movements are commonly found in Sakuting?",
         options: [
@@ -324,7 +359,6 @@
         ],
         answer: "Quick shuffles, spins, and knee bends"
       },
-
       {
         question: "13. How is Sakuting commonly performed?",
         options: [
@@ -335,7 +369,6 @@
         ],
         answer: "In pairs with coordinated movements"
       },
-
       {
         question: "14. Which dance imitates the graceful movements of a bird while avoiding bamboo poles?",
         options: [
@@ -346,7 +379,6 @@
         ],
         answer: "Tinikling"
       },
-
       {
         question: "15. Which statement correctly describes the three dances?",
         options: [
@@ -357,7 +389,6 @@
         ],
         answer: "Tinikling uses bamboo poles, Cariñosa uses a fan and handkerchief, and Sakuting features lively footwork."
       }
-
     ];
 
     let currentQuestionIndex = 0;
@@ -369,37 +400,19 @@
     let timeRemaining = quizDuration;
     let answerSelected = false;
 
-    const welcomeContainer =
-      document.getElementById("welcome-container");
+    const welcomeContainer = document.getElementById("welcome-container");
+    const questionContainer = document.getElementById("question-container");
+    const resultContainer = document.getElementById("result-container");
+    const questionElement = document.getElementById("question");
+    const optionsElement = document.getElementById("options");
+    const startButton = document.getElementById("start-button");
+    const nextButton = document.getElementById("next-button");
+    const restartButton = document.getElementById("restart-button");
+    const timerElement = document.getElementById("timer");
+    const scoreElement = document.getElementById("score");
+    const resultElement = document.getElementById("result");
 
-    const questionContainer =
-      document.getElementById("question-container");
-
-    const resultContainer =
-      document.getElementById("result-container");
-
-    const questionElement =
-      document.getElementById("question");
-
-    const optionsElement =
-      document.getElementById("options");
-
-    const nextButton =
-      document.getElementById("next-button");
-
-    const timerElement =
-      document.getElementById("timer");
-
-    const scoreElement =
-      document.getElementById("score");
-
-    const resultElement =
-      document.getElementById("result");
-
-
-    // Start Quiz
     function startQuiz() {
-
       clearInterval(timerInterval);
 
       currentQuestionIndex = 0;
@@ -416,14 +429,10 @@
       displayQuestion();
     }
 
-
-    // Timer
     function startTimer() {
-
       updateTimerDisplay();
 
       timerInterval = setInterval(() => {
-
         timeRemaining--;
         updateTimerDisplay();
 
@@ -431,15 +440,13 @@
           clearInterval(timerInterval);
           endQuiz();
         }
-
       }, 1000);
     }
 
-
     function updateTimerDisplay() {
-
-      const minutes = Math.floor(timeRemaining / 60);
-      const seconds = timeRemaining % 60;
+      const safeTime = Math.max(0, timeRemaining);
+      const minutes = Math.floor(safeTime / 60);
+      const seconds = safeTime % 60;
 
       timerElement.textContent =
         "Time Remaining: " +
@@ -448,10 +455,7 @@
         String(seconds).padStart(2, "0");
     }
 
-
-    // Display Question
     function displayQuestion() {
-
       const question = questions[currentQuestionIndex];
 
       answerSelected = false;
@@ -460,7 +464,6 @@
       optionsElement.innerHTML = "";
 
       question.options.forEach(option => {
-
         const button = document.createElement("button");
 
         button.type = "button";
@@ -472,52 +475,38 @@
         });
 
         optionsElement.appendChild(button);
-
       });
 
       nextButton.style.display = "none";
-
       nextButton.textContent =
         currentQuestionIndex === questions.length - 1
           ? "Submit Quiz"
           : "Next";
     }
 
-
-    // Select Answer
     function selectAnswer(selected, correct, selectedButton) {
-
       if (answerSelected) return;
 
       answerSelected = true;
 
-      const options =
-        optionsElement.querySelectorAll(".option");
+      const options = optionsElement.querySelectorAll(".option");
 
       options.forEach(option => {
-
         option.disabled = true;
 
         if (option.textContent === correct) {
-
           option.style.backgroundColor = "#2ed573";
           option.style.color = "#fff";
           option.style.borderColor = "#2ed573";
-
         }
-
       });
 
       if (selected === correct) {
-
         score++;
-
       } else {
-
         selectedButton.style.backgroundColor = "#ff4757";
         selectedButton.style.color = "#fff";
         selectedButton.style.borderColor = "#ff4757";
-
       }
 
       userAnswers[currentQuestionIndex] = {
@@ -530,45 +519,29 @@
       nextButton.focus();
     }
 
-
-    // Next Question
-    nextButton.addEventListener("click", () => {
-
+    function handleNextClick() {
       if (!answerSelected) return;
 
       currentQuestionIndex++;
 
       if (currentQuestionIndex < questions.length) {
-
         displayQuestion();
-
       } else {
-
         endQuiz();
-
       }
+    }
 
-    });
-
-
-    // End Quiz
     function endQuiz() {
-
       clearInterval(timerInterval);
 
-      // Add unanswered questions
       for (let i = 0; i < questions.length; i++) {
-
         if (!userAnswers[i]) {
-
           userAnswers[i] = {
             question: questions[i].question,
             selected: "Not answered",
             correct: questions[i].answer
           };
-
         }
-
       }
 
       questionContainer.style.display = "none";
@@ -579,34 +552,23 @@
         "Your Score: " + score + "/" + questions.length;
 
       resultElement.innerHTML = userAnswers.map(answer => {
-
-        const isCorrect =
-          answer.selected === answer.correct;
+        const isCorrect = answer.selected === answer.correct;
 
         return `
           <div class="result-item">
-
             <strong>${answer.question}</strong><br>
-
             <span class="${isCorrect ? "correct" : "incorrect"}">
               Your Answer: ${answer.selected}
             </span><br>
-
             <span class="correct">
               Correct Answer: ${answer.correct}
             </span>
-
           </div>
         `;
-
       }).join("");
-
     }
 
-
-    // Restart Quiz
     function restartQuiz() {
-
       clearInterval(timerInterval);
 
       currentQuestionIndex = 0;
@@ -625,6 +587,26 @@
       timerElement.textContent = "Time Remaining: 20:00";
     }
 
+    function bindEvents() {
+      if (startButton && !startButton.dataset.bound) {
+        startButton.addEventListener("click", startQuiz);
+        startButton.dataset.bound = "true";
+      }
+      if (restartButton && !restartButton.dataset.bound) {
+        restartButton.addEventListener("click", restartQuiz);
+        restartButton.dataset.bound = "true";
+      }
+      if (nextButton && !nextButton.dataset.bound) {
+        nextButton.addEventListener("click", handleNextClick);
+        nextButton.dataset.bound = "true";
+      }
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", bindEvents);
+    } else {
+      bindEvents();
+    }
   </script>
 
 </body>
