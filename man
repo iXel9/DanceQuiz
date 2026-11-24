@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Folk Dance Quiz</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #333;
+    }
+
+    .quiz-container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      max-width: 700px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .welcome-title {
+      font-size: 2em;
+      color: #6a11cb;
+      margin-bottom: 15px;
+    }
+
+    .timer-display {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #ff4757;
+      background: #ffeae6;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .question {
+      font-size: 1.25em;
+      margin-bottom: 20px;
+      font-weight: bold;
+      color: #444;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .option {
+      padding: 13px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #f9f9f9;
+      font-size: 1.05em;
+      text-align: left;
+      width: 100%;
+      color: #333;
+    }
+
+    .option:not(:disabled):hover {
+      background: #6a11cb;
+      color: #fff;
+      border-color: #6a11cb;
+    }
+
+    .option:disabled {
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .quiz-button {
+      width: 100%;
+      padding: 15px;
+      margin-top: 20px;
+      background: #2575fc;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1em;
+      cursor: pointer;
+    }
+
+    .quiz-button:hover {
+      background: #6a11cb;
+    }
+
+    .next-button {
+      display: none;
+    }
+
+    .score {
+      font-size: 1.8em;
+      margin-top: 20px;
+      color: #2ed573;
+      font-weight: bold;
+    }
+
+    .result {
+      text-align: left;
+      margin-top: 20px;
+      max-height: 350px;
+      overflow-y: auto;
+    }
+
+    .result-item {
+      margin-bottom: 15px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #f1f2f6;
+    }
+
+    .correct {
+      color: #168a4a;
+    }
+
+    .incorrect {
+      color: #ff4757;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="quiz-container">
+
+    <!-- Welcome Screen -->
+    <div id="welcome-container">
+      <h1 class="welcome-title">Folk Dance Quiz</h1>
+
+      <p>Test your knowledge about Folk Dance in the Philippines..</p>
+
+      <p>
+        There are <strong>15 questions</strong>.
+        You have <strong>20 minutes</strong> to complete the quiz.
+      </p>
+
+      <button class="quiz-button" onclick="startQuiz()">
+        Start Quiz
+      </button>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="question-container" style="display:none;">
+
+      <div id="timer" class="timer-display">
+        Time Remaining: 20:00
+      </div>
+
+      <div id="question" class="question"></div>
+
+      <div id="options" class="options"></div>
+
+      <button id="next-button" class="quiz-button next-button">
+        Next
+      </button>
+
+    </div>
+
+    <!-- Results Screen -->
+    <div id="result-container" style="display:none;">
+
+      <h1>Quiz Completed!</h1>
+
+      <div id="score" class="score"></div>
+
+      <div id="result" class="result"></div>
+
+      <button class="quiz-button" onclick="restartQuiz()">
+        Restart Quiz
+      </button>
+
+    </div>
+
+  </div>
+
+  <script>
+    const questions = [
+
+      {
+        question: "1. Where did Tinikling originate?",
+        options: [
+          "Panay Island",
+          "Palo, Leyte",
+          "Ilocos Norte",
+          "Manila"
+        ],
+        answer: "Palo, Leyte"
+      },
+
+      {
+        question: "2. What animal inspired the name and movements of Tinikling?",
+        options: [
+          "Maya bird",
+          "Peacock",
+          "Tikling bird",
+          "Philippine eagle"
+        ],
+        answer: "Tikling bird"
+      },
+
+      {
+        question: "3. What do Tinikling dancers move between?",
+        options: [
+          "Wooden boards",
+          "Bamboo poles",
+          "Metal rods",
+          "Ropes"
+        ],
+        answer: "Bamboo poles"
+      },
+
+      {
+        question: "4. Which statement about Tinikling's origin is correct?",
+        options: [
+          "It was invented during World War II.",
+          "It originated from a Spanish royal dance.",
+          "It is believed to have existed before the Spanish period.",
+          "It was created by American soldiers."
+        ],
+        answer: "It is believed to have existed before the Spanish period."
+      },
+
+      {
+        question: "5. Which costume is commonly worn by female Tinikling dancers?",
+        options: [
+          "Balintawak or patadyong",
+          "Maria Clara gown only",
+          "Modern sportswear",
+          "Kimono"
+        ],
+        answer: "Balintawak or patadyong"
+      },
+
+      {
+        question: "6. Where did Cariñosa originate?",
+        options: [
+          "Luzon",
+          "Mindanao",
+          "Panay Island",
+          "Samar"
+        ],
+        answer: "Panay Island"
+      },
+
+      {
+        question: "7. Which dances are associated with the Spanish and Mexican influences of Cariñosa?",
+        options: [
+          "Tinikling and Sakuting",
+          "Bolero and Jarabe Tapatio",
+          "Pandanggo and Maglalatik",
+          "Singkil and Pangalay"
+        ],
+        answer: "Bolero and Jarabe Tapatio"
+      },
+
+      {
+        question: "8. What is the main theme expressed through Cariñosa's movements?",
+        options: [
+          "War and bravery",
+          "Harvest and farming",
+          "Courtship between a man and a woman",
+          "Religious worship"
+        ],
+        answer: "Courtship between a man and a woman"
+      },
+
+      {
+        question: "9. Which props are commonly used in Cariñosa?",
+        options: [
+          "Bamboo poles and bells",
+          "Fan and handkerchief",
+          "Sticks and shields",
+          "Hats and baskets"
+        ],
+        answer: "Fan and handkerchief"
+      },
+
+      {
+        question: "10. What is the time signature of Cariñosa?",
+        options: [
+          "2/4",
+          "3/4",
+          "4/4",
+          "6/8"
+        ],
+        answer: "3/4"
+      },
+
+      {
+        question: "11. What is the usual time signature of Sakuting?",
+        options: [
+          "2/4",
+          "3/4",
+          "4/4",
+          "5/4"
+        ],
+        answer: "2/4"
+      },
+
+      {
+        question: "12. Which movements are commonly found in Sakuting?",
+        options: [
+          "Slow gliding and bowing",
+          "Quick shuffles, spins, and knee bends",
+          "Walking and standing still",
+          "Gentle swaying and hand waving"
+        ],
+        answer: "Quick shuffles, spins, and knee bends"
+      },
+
+      {
+        question: "13. How is Sakuting commonly performed?",
+        options: [
+          "Individually without movement",
+          "In pairs with coordinated movements",
+          "Only by a large group in a circle",
+          "While seated"
+        ],
+        answer: "In pairs with coordinated movements"
+      },
+
+      {
+        question: "14. Which dance imitates the graceful movements of a bird while avoiding bamboo poles?",
+        options: [
+          "Cariñosa",
+          "Sakuting",
+          "Tinikling",
+          "Pandanggo"
+        ],
+        answer: "Tinikling"
+      },
+
+      {
+        question: "15. Which statement correctly describes the three dances?",
+        options: [
+          "All three use the same time signature and costumes.",
+          "Tinikling uses bamboo poles, Cariñosa uses a fan and handkerchief, and Sakuting features lively footwork.",
+          "Cariñosa originated in Leyte, while Tinikling originated in Panay.",
+          "Sakuting is mainly a slow courtship dance."
+        ],
+        answer: "Tinikling uses bamboo poles, Cariñosa uses a fan and handkerchief, and Sakuting features lively footwork."
+      }
+
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let userAnswers = [];
+    let timerInterval = null;
+
+    const quizDuration = 20 * 60;
+    let timeRemaining = quizDuration;
+    let answerSelected = false;
+
+    const welcomeContainer =
+      document.getElementById("welcome-container");
+
+    const questionContainer =
+      document.getElementById("question-container");
+
+    const resultContainer =
+      document.getElementById("result-container");
+
+    const questionElement =
+      document.getElementById("question");
+
+    const optionsElement =
+      document.getElementById("options");
+
+    const nextButton =
+      document.getElementById("next-button");
+
+    const timerElement =
+      document.getElementById("timer");
+
+    const scoreElement =
+      document.getElementById("score");
+
+    const resultElement =
+      document.getElementById("result");
+
+
+    // Start Quiz
+    function startQuiz() {
+
+      clearInterval(timerInterval);
+
+      currentQuestionIndex = 0;
+      score = 0;
+      userAnswers = [];
+      timeRemaining = quizDuration;
+      answerSelected = false;
+
+      welcomeContainer.style.display = "none";
+      resultContainer.style.display = "none";
+      questionContainer.style.display = "block";
+
+      startTimer();
+      displayQuestion();
+    }
+
+
+    // Timer
+    function startTimer() {
+
+      updateTimerDisplay();
+
+      timerInterval = setInterval(() => {
+
+        timeRemaining--;
+        updateTimerDisplay();
+
+        if (timeRemaining <= 0) {
+          clearInterval(timerInterval);
+          endQuiz();
+        }
+
+      }, 1000);
+    }
+
+
+    function updateTimerDisplay() {
+
+      const minutes = Math.floor(timeRemaining / 60);
+      const seconds = timeRemaining % 60;
+
+      timerElement.textContent =
+        "Time Remaining: " +
+        String(minutes).padStart(2, "0") +
+        ":" +
+        String(seconds).padStart(2, "0");
+    }
+
+
+    // Display Question
+    function displayQuestion() {
+
+      const question = questions[currentQuestionIndex];
+
+      answerSelected = false;
+
+      questionElement.textContent = question.question;
+      optionsElement.innerHTML = "";
+
+      question.options.forEach(option => {
+
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.textContent = option;
+        button.className = "option";
+
+        button.addEventListener("click", () => {
+          selectAnswer(option, question.answer, button);
+        });
+
+        optionsElement.appendChild(button);
+
+      });
+
+      nextButton.style.display = "none";
+
+      nextButton.textContent =
+        currentQuestionIndex === questions.length - 1
+          ? "Submit Quiz"
+          : "Next";
+    }
+
+
+    // Select Answer
+    function selectAnswer(selected, correct, selectedButton) {
+
+      if (answerSelected) return;
+
+      answerSelected = true;
+
+      const options =
+        optionsElement.querySelectorAll(".option");
+
+      options.forEach(option => {
+
+        option.disabled = true;
+
+        if (option.textContent === correct) {
+
+          option.style.backgroundColor = "#2ed573";
+          option.style.color = "#fff";
+          option.style.borderColor = "#2ed573";
+
+        }
+
+      });
+
+      if (selected === correct) {
+
+        score++;
+
+      } else {
+
+        selectedButton.style.backgroundColor = "#ff4757";
+        selectedButton.style.color = "#fff";
+        selectedButton.style.borderColor = "#ff4757";
+
+      }
+
+      userAnswers[currentQuestionIndex] = {
+        question: questions[currentQuestionIndex].question,
+        selected: selected,
+        correct: correct
+      };
+
+      nextButton.style.display = "block";
+      nextButton.focus();
+    }
+
+
+    // Next Question
+    nextButton.addEventListener("click", () => {
+
+      if (!answerSelected) return;
+
+      currentQuestionIndex++;
+
+      if (currentQuestionIndex < questions.length) {
+
+        displayQuestion();
+
+      } else {
+
+        endQuiz();
+
+      }
+
+    });
+
+
+    // End Quiz
+    function endQuiz() {
+
+      clearInterval(timerInterval);
+
+      // Add unanswered questions
+      for (let i = 0; i < questions.length; i++) {
+
+        if (!userAnswers[i]) {
+
+          userAnswers[i] = {
+            question: questions[i].question,
+            selected: "Not answered",
+            correct: questions[i].answer
+          };
+
+        }
+
+      }
+
+      questionContainer.style.display = "none";
+      welcomeContainer.style.display = "none";
+      resultContainer.style.display = "block";
+
+      scoreElement.textContent =
+        "Your Score: " + score + "/" + questions.length;
+
+      resultElement.innerHTML = userAnswers.map(answer => {
+
+        const isCorrect =
+          answer.selected === answer.correct;
+
+        return `
+          <div class="result-item">
+
+            <strong>${answer.question}</strong><br>
+
+            <span class="${isCorrect ? "correct" : "incorrect"}">
+              Your Answer: ${answer.selected}
+            </span><br>
+
+            <span class="correct">
+              Correct Answer: ${answer.correct}
+            </span>
+
+          </div>
+        `;
+
+      }).join("");
+
+    }
+
+
+    // Restart Quiz
+    function restartQuiz() {
+
+      clearInterval(timerInterval);
+
+      currentQuestionIndex = 0;
+      score = 0;
+      userAnswers = [];
+      timeRemaining = quizDuration;
+      answerSelected = false;
+
+      resultElement.innerHTML = "";
+      scoreElement.textContent = "";
+
+      resultContainer.style.display = "none";
+      questionContainer.style.display = "none";
+      welcomeContainer.style.display = "block";
+
+      timerElement.textContent = "Time Remaining: 20:00";
+    }
+
+  </script>
+
+</body>
+</html>
